@@ -8,10 +8,6 @@ index 0e57cb0b4c..25e9c30df7 100644
  /mapfile
 +venv
 +
-diff --git a/ffmpeg_o b/ffmpeg_o
-new file mode 100755
-index 0000000000..32110c154e
-Binary files /dev/null and b/ffmpeg_o differ
 diff --git a/fftools/ffmpeg.c b/fftools/ffmpeg.c
 index 4724f62fff..66ae8d3b37 100644
 --- a/fftools/ffmpeg.c
@@ -50,6 +46,8 @@ index 4724f62fff..66ae8d3b37 100644
 +                }
 +                ret = av_bsf_alloc(avBitStreamFilter, &avbsfContext);
 +                av_opt_set(avbsfContext->priv_data, "sei_user_data", s, AV_OPT_SEARCH_CHILDREN);
++//
++//
 +                ret = avcodec_parameters_copy(avbsfContext->par_in, ost->st->codecpar);
 +                ret = av_bsf_init(avbsfContext);
 +                ret = avcodec_parameters_copy(ost->st->codecpar, avbsfContext->par_out);
