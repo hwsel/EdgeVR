@@ -1,0 +1,1011 @@
+diff --git a/android/ijkplayer/build.gradle b/android/ijkplayer/build.gradle
+index abc1270f..d63d81f8 100644
+--- a/android/ijkplayer/build.gradle
++++ b/android/ijkplayer/build.gradle
+@@ -3,9 +3,15 @@
+ buildscript {
+     repositories {
+         jcenter()
++        maven {
++            url 'https://maven.google.com/'
++            name 'Google'
++        }
++//        google()
++//        google()
+     }
+     dependencies {
+-        classpath 'com.android.tools.build:gradle:2.1.3'
++        classpath 'com.android.tools.build:gradle:3.6.2'
+ 
+         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
+@@ -17,6 +23,11 @@ buildscript {
+ allprojects {
+     repositories {
+         jcenter()
++        maven {
++            url 'https://maven.google.com/'
++            name 'Google'
++        }
++//        google()
+     }
+ }
+ 
+@@ -31,5 +42,5 @@ ext {
+ }
+ 
+ wrapper {
+-    gradleVersion = '2.14.1'
++    gradleVersion = '5.6.4'
+ }
+diff --git a/android/ijkplayer/gradle.properties b/android/ijkplayer/gradle.properties
+index 19a69a92..c80533ef 100644
+--- a/android/ijkplayer/gradle.properties
++++ b/android/ijkplayer/gradle.properties
+@@ -34,3 +34,4 @@ POM_LICENSE_DIST=repo
+ POM_DEVELOPER_ID=bbcallen
+ POM_DEVELOPER_NAME=Zhang Rui
+ POM_DEVELOPER_EMAIL=bbcallen@gmail.com
++android.useDeprecatedNdk=true
+diff --git a/android/ijkplayer/gradle/wrapper/gradle-wrapper.properties b/android/ijkplayer/gradle/wrapper/gradle-wrapper.properties
+index f47ae666..5388b04b 100644
+--- a/android/ijkplayer/gradle/wrapper/gradle-wrapper.properties
++++ b/android/ijkplayer/gradle/wrapper/gradle-wrapper.properties
+@@ -3,4 +3,4 @@ distributionBase=GRADLE_USER_HOME
+ distributionPath=wrapper/dists
+ zipStoreBase=GRADLE_USER_HOME
+ zipStorePath=wrapper/dists
+-distributionUrl=https\://services.gradle.org/distributions/gradle-2.14.1-all.zip
++distributionUrl=https\://services.gradle.org/distributions/gradle-5.6.4-all.zip
+diff --git a/android/ijkplayer/ijkplayer-arm64/src/main/AndroidManifest.xml b/android/ijkplayer/ijkplayer-arm64/src/main/AndroidManifest.xml
+index f075c285..88a4fb0d 100644
+--- a/android/ijkplayer/ijkplayer-arm64/src/main/AndroidManifest.xml
++++ b/android/ijkplayer/ijkplayer-arm64/src/main/AndroidManifest.xml
+@@ -1,7 +1,4 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="tv.danmaku.ijk.media.player_arm64">
+ 
+-    <uses-sdk
+-        android:minSdkVersion="21" />
+-
+ </manifest>
+diff --git a/android/ijkplayer/ijkplayer-armv5/src/main/AndroidManifest.xml b/android/ijkplayer/ijkplayer-armv5/src/main/AndroidManifest.xml
+index 5d35eadf..2975659e 100644
+--- a/android/ijkplayer/ijkplayer-armv5/src/main/AndroidManifest.xml
++++ b/android/ijkplayer/ijkplayer-armv5/src/main/AndroidManifest.xml
+@@ -1,7 +1,4 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="tv.danmaku.ijk.media.player_armv5" >
+ 
+-    <uses-sdk
+-        android:minSdkVersion="9" />
+-
+ </manifest>
+\ No newline at end of file
+diff --git a/android/ijkplayer/ijkplayer-armv7a/src/main/AndroidManifest.xml b/android/ijkplayer/ijkplayer-armv7a/src/main/AndroidManifest.xml
+index f3727da3..64e550b8 100644
+--- a/android/ijkplayer/ijkplayer-armv7a/src/main/AndroidManifest.xml
++++ b/android/ijkplayer/ijkplayer-armv7a/src/main/AndroidManifest.xml
+@@ -1,7 +1,4 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="tv.danmaku.ijk.media.player_armv7a" >
+ 
+-    <uses-sdk
+-        android:minSdkVersion="9" />
+-
+ </manifest>
+\ No newline at end of file
+diff --git a/android/ijkplayer/ijkplayer-example/build.gradle b/android/ijkplayer/ijkplayer-example/build.gradle
+index ae4a0c65..180d6e17 100644
+--- a/android/ijkplayer/ijkplayer-example/build.gradle
++++ b/android/ijkplayer/ijkplayer-example/build.gradle
+@@ -16,6 +16,10 @@ android {
+         targetSdkVersion rootProject.ext.targetSdkVersion
+         versionCode rootProject.ext.versionCode
+         versionName rootProject.ext.versionName
++
++        ndk {
++            abiFilters 'armeabi-v7a', 'x86'
++        }
+     }
+     buildTypes {
+         release {
+@@ -23,14 +27,22 @@ android {
+             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+         }
+     }
++    flavorDimensions "bits"
+     productFlavors {
+-        all32 { minSdkVersion 9 }
+-        all64 { minSdkVersion 21 }
++        all32 {
++            dimension "bits"
++            minSdkVersion 9
++        }
++        all64 {
++            dimension "bits"
++            minSdkVersion 21
++        }
+         // armv5 {}
+         // armv7a {}
+         // arm64 { minSdkVersion 21 }
+         // x86 {}
+     }
++
+ }
+ 
+ dependencies {
+@@ -54,16 +66,16 @@ dependencies {
+     all64Compile project(':ijkplayer-x86')
+     all64Compile project(':ijkplayer-x86_64')
+ 
+-    // compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
+-    // compile 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'
++//     compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
++//     compile 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'
+ 
+     // all32Compile 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
+-    // all32Compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
++//     all32Compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
+     // all32Compile 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.8'
+ 
+     // all64Compile 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
+     // all64Compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
+-    // all64Compile 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
++//     all64Compile 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
+     // all64Compile 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.8'
+     // all64Compile 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
+ 
+diff --git a/android/ijkplayer/ijkplayer-example/src/main/AndroidManifest.xml b/android/ijkplayer/ijkplayer-example/src/main/AndroidManifest.xml
+index dd3a3af1..bd58c5d4 100644
+--- a/android/ijkplayer/ijkplayer-example/src/main/AndroidManifest.xml
++++ b/android/ijkplayer/ijkplayer-example/src/main/AndroidManifest.xml
+@@ -2,25 +2,13 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="tv.danmaku.ijk.media.example">
+ 
+-    <uses-sdk
+-        android:minSdkVersion="9"
+-        android:targetSdkVersion="22" />
+-
+-    <uses-permission android:name="android.permission.INTERNET" />
+-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+-
+-    <!-- for umeng -->
+-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+-
+     <application
+         android:allowBackup="true"
+         android:icon="@mipmap/ic_launcher"
+         android:label="@string/app_name"
+         android:theme="@style/AppTheme">
+         <activity
+-            android:name="tv.danmaku.ijk.media.example.activities.FileExplorerActivity"
++            android:name=".activities.FileExplorerActivity"
+             android:configChanges="orientation|keyboardHidden|screenSize"
+             android:label="@string/app_name"
+             android:screenOrientation="user"
+@@ -31,34 +19,34 @@
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
+         </activity>
++
+         <activity
+-            android:name="tv.danmaku.ijk.media.example.activities.SampleMediaActivity"
++            android:name=".activities.SampleMediaActivity"
+             android:configChanges="orientation|keyboardHidden|screenSize"
+             android:label="@string/app_name"
+             android:screenOrientation="user"
+-            android:theme="@style/AppTheme">
+-        </activity>
++            android:theme="@style/AppTheme"></activity>
+         <activity
+-            android:name="tv.danmaku.ijk.media.example.activities.RecentMediaActivity"
++            android:name=".activities.RecentMediaActivity"
+             android:configChanges="orientation|keyboardHidden|screenSize"
+             android:label="@string/app_name"
+             android:screenOrientation="user"
+-            android:theme="@style/AppTheme">
+-        </activity>
++            android:theme="@style/AppTheme"></activity>
+         <activity
+-            android:name="tv.danmaku.ijk.media.example.activities.SettingsActivity"
++            android:name=".activities.SettingsActivity"
+             android:configChanges="orientation|keyboardHidden|screenSize"
+             android:label="@string/app_name"
+             android:screenOrientation="user"
+             android:theme="@style/AppTheme" />
+         <activity
+-            android:name="tv.danmaku.ijk.media.example.activities.VideoActivity"
++            android:name=".activities.VideoActivity"
+             android:configChanges="orientation|keyboardHidden|screenSize"
+             android:label="@string/app_name"
+             android:screenOrientation="user"
+             android:theme="@style/FullscreenTheme">
+             <intent-filter>
+                 <action android:name="android.intent.action.VIEW" />
++
+                 <category android:name="android.intent.category.DEFAULT" />
+ 
+                 <data android:mimeType="video/*" />
+@@ -68,19 +56,32 @@
+             </intent-filter>
+             <intent-filter>
+                 <action android:name="android.intent.action.SEND" />
++
+                 <category android:name="android.intent.category.DEFAULT" />
+ 
+                 <data android:mimeType="video/*" />
+             </intent-filter>
+         </activity>
++        <service
++            android:name=".services.SensorService"
++            android:enabled="true"
++            android:exported="true"></service>
+ 
+         <service
+-            android:name="tv.danmaku.ijk.media.example.services.MediaPlayerService"
++            android:name=".services.MediaPlayerService"
+             android:enabled="false"
+             android:exported="false"
+             android:icon="@mipmap/ic_launcher"
+-            android:label="@string/app_name" >
+-        </service>
++            android:label="@string/app_name"></service>
+     </application>
+ 
++    <uses-permission android:name="android.permission.WAKE_LOCK" />
++    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
++    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
++    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- for umeng -->
++    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
++    <uses-permission android:name="android.permission.INTERNET" />
++
++    <uses-sdk android:targetSdkVersion="22" />
++
+ </manifest>
+\ No newline at end of file
+diff --git a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/activities/FileExplorerActivity.java b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/activities/FileExplorerActivity.java
+index 7ff800c2..f353dfd5 100644
+--- a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/activities/FileExplorerActivity.java
++++ b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/activities/FileExplorerActivity.java
+@@ -17,6 +17,7 @@
+ 
+ package tv.danmaku.ijk.media.example.activities;
+ 
++import android.content.Intent;
+ import android.os.Bundle;
+ import android.support.v4.app.Fragment;
+ import android.support.v4.app.FragmentTransaction;
+@@ -32,6 +33,7 @@ import tv.danmaku.ijk.media.example.application.AppActivity;
+ import tv.danmaku.ijk.media.example.application.Settings;
+ import tv.danmaku.ijk.media.example.eventbus.FileExplorerEvents;
+ import tv.danmaku.ijk.media.example.fragments.FileListFragment;
++import tv.danmaku.ijk.media.example.services.SensorService;
+ 
+ public class FileExplorerActivity extends AppActivity {
+     private Settings mSettings;
+@@ -40,6 +42,8 @@ public class FileExplorerActivity extends AppActivity {
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+ 
++//        startService(new Intent(this, SensorService.class));
++
+         if (mSettings == null) {
+             mSettings = new Settings(this);
+         }
+diff --git a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/activities/VideoActivity.java b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/activities/VideoActivity.java
+index d42dda5c..3fb5c0dd 100644
+--- a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/activities/VideoActivity.java
++++ b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/activities/VideoActivity.java
+@@ -38,6 +38,7 @@ import android.view.ViewGroup;
+ import android.widget.TableLayout;
+ import android.widget.TextView;
+ 
++import tv.danmaku.ijk.media.example.services.SensorService;
+ import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+ import tv.danmaku.ijk.media.player.misc.ITrackInfo;
+ import tv.danmaku.ijk.media.example.R;
+@@ -151,6 +152,9 @@ public class VideoActivity extends AppCompatActivity implements TracksFragment.I
+             return;
+         }
+         mVideoView.start();
++
++        startService(new Intent(this, SensorService.class));
++
+     }
+ 
+     @Override
+@@ -172,6 +176,8 @@ public class VideoActivity extends AppCompatActivity implements TracksFragment.I
+             mVideoView.enterBackground();
+         }
+         IjkMediaPlayer.native_profileEnd();
++
++        stopService(new Intent(this, SensorService.class));
+     }
+ 
+     @Override
+diff --git a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/fragments/SampleMediaListFragment.java b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/fragments/SampleMediaListFragment.java
+index 3361d501..36d402bf 100644
+--- a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/fragments/SampleMediaListFragment.java
++++ b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/fragments/SampleMediaListFragment.java
+@@ -68,6 +68,7 @@ public class SampleMediaListFragment extends Fragment {
+             }
+         });
+ 
++        mAdapter.addItem("rtmp://192.168.1.215:1935/live/desktop", "desktop");
+         mAdapter.addItem("http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8", "bipbop basic master playlist");
+         mAdapter.addItem("http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear1/prog_index.m3u8", "bipbop basic 400x300 @ 232 kbps");
+         mAdapter.addItem("http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear2/prog_index.m3u8", "bipbop basic 640x480 @ 650 kbps");
+diff --git a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/services/SensorService.java b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/services/SensorService.java
+new file mode 100644
+index 00000000..f2cd8ad7
+--- /dev/null
++++ b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/services/SensorService.java
+@@ -0,0 +1,312 @@
++package tv.danmaku.ijk.media.example.services;
++
++import android.annotation.TargetApi;
++import android.app.Service;
++import android.content.Context;
++import android.content.Intent;
++import android.hardware.Sensor;
++import android.hardware.SensorEvent;
++import android.hardware.SensorEventListener;
++import android.hardware.SensorManager;
++//import android.os.AsyncTask;
++import android.os.AsyncTask;
++import android.os.Build;
++import android.os.IBinder;
++import android.util.Log;
++import android.widget.Toast;
++
++import java.io.BufferedReader;
++import java.io.DataOutputStream;
++import java.io.InputStream;
++import java.io.InputStreamReader;
++import java.net.HttpURLConnection;
++import java.net.URL;
++import java.net.URLEncoder;
++import java.util.Arrays;
++import java.util.HashMap;
++import java.util.Map;
++import java.util.concurrent.Callable;
++import java.util.concurrent.FutureTask;
++
++//import java.io.IOException;
++//
++//import okhttp3.MediaType;
++//import okhttp3.OkHttpClient;
++//import okhttp3.Request;
++//import okhttp3.RequestBody;
++//import okhttp3.Response;
++
++//const String url = "http://172.16.60.179:5000/sensor";
++//const String media_type = "application/json; charset=utf-8";
++
++public class SensorService extends Service implements SensorEventListener {
++
++    final String url = "http://192.168.1.215:5000/sensor";
++    final String media_type = "application/json; charset=utf-8";
++
++    private SensorManager sensorManager;
++
++    private float[] accelerometerReading = new float[3];
++    private float[] magnetometerReading = new float[3];
++    private float[] rotationMatrix = new float[9];
++    private float[] rotationMatrix2 = new float[9];
++    private float[] orientationAngles = new float[3];
++    private float[] quaternion = new float[4];
++
++//    private OkHttpClient okHttpClient;
++
++    public SensorService() {
++    }
++
++    @Override
++    public IBinder onBind(Intent intent) {
++        return null;
++    }
++
++    @TargetApi(Build.VERSION_CODES.KITKAT)
++    @Override
++    public int onStartCommand(Intent intent, int flags, int startId) {
++        Toast.makeText(this, "service onStartCommand", Toast.LENGTH_LONG).show();
++
++        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
++
++        assert sensorManager != null;
++        sensorManager.registerListener(
++                this,
++                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
++                SensorManager.SENSOR_DELAY_NORMAL,
++                SensorManager.SENSOR_DELAY_UI
++        );
++
++        sensorManager.registerListener(
++                this,
++                sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
++                SensorManager.SENSOR_DELAY_NORMAL,
++                SensorManager.SENSOR_DELAY_UI
++        );
++
++//        okHttpClient = new OkHttpClient();
++
++        return START_STICKY;
++
++
++    }
++
++    @Override
++    public void onDestroy() {
++        super.onDestroy();
++
++        Toast.makeText(this, "service onDestroy", Toast.LENGTH_LONG).show();
++
++        sensorManager.unregisterListener(this);
++
++    }
++
++    @Override
++    public void onSensorChanged(SensorEvent sensorEvent) {
++        switch (sensorEvent.sensor.getType()) {
++            case Sensor.TYPE_ACCELEROMETER:
++                System.arraycopy(
++                        sensorEvent.values,
++                        0,
++                        accelerometerReading,
++                        0,
++                        accelerometerReading.length
++                );
++                break;
++            case Sensor.TYPE_MAGNETIC_FIELD:
++                System.arraycopy(
++                        sensorEvent.values,
++                        0,
++                        magnetometerReading,
++                        0,
++                        magnetometerReading.length
++                );
++                break;
++            default:
++                break;
++        }
++
++        SensorManager.getRotationMatrix(
++                rotationMatrix,
++                null,
++                accelerometerReading,
++                magnetometerReading
++        );
++
++        SensorManager.remapCoordinateSystem(
++                rotationMatrix,
++                SensorManager.AXIS_Z,
++                SensorManager.AXIS_MINUS_X,
++                rotationMatrix2
++        );
++
++        SensorManager.getOrientation(
++                rotationMatrix2,
++                orientationAngles
++        );
++
++        SensorManager.getQuaternionFromVector(
++                quaternion,
++                rotationMatrix2
++        );
++
++//        new UpdateTask().execute(Arrays.toString(orientationAngles));
++        HttpConnectionUtil util = new HttpConnectionUtil();
++
++        Map<String, String> map = new HashMap<>();
++
++        map.put("orientationAngles", Arrays.toString(orientationAngles));
++        map.put("time", String.valueOf(System.currentTimeMillis()));
++//        long s = System.nanoTime();
++        util.postRequset(url, map);
++//        long e = System.nanoTime();
++
++//        Log.i("TIME", String.valueOf((e - s)/1000000));
++
++    }
++
++    @Override
++    public void onAccuracyChanged(Sensor sensor, int i) {
++
++    }
++
++
++    private class UpdateTask extends AsyncTask<String, Void, Void> {
++
++        @Override
++        protected Void doInBackground(String... strings) {
++
++            HttpConnectionUtil util = new HttpConnectionUtil();
++
++            Map<String, String> map = new HashMap<>();
++
++            map.put("orientationAngles", strings[0]);
++//            long s = System.nanoTime();
++            util.postRequset(url, map);
++//            long e = System.nanoTime();
++
++//            Log.i("TIME", String.valueOf((e - s)/1000000));
++//
++            return null;
++        }
++    }
++//
++
++
++    private class HttpConnectionUtil {
++//        public  HttpConnectionUtil http = new HttpConnectionUtil();
++//
++//        public  HttpConnectionUtil getHttp() {
++//            return http;
++//        }
++
++        public String getRequset(final String url) {
++            final StringBuilder sb = new StringBuilder();
++            FutureTask<String> task = new FutureTask<String>(new Callable<String>() {
++                @Override
++                public String call() throws Exception {
++                    HttpURLConnection connection = null;
++                    BufferedReader reader = null;
++                    try {
++                        URL requestUrl = new URL(url);
++                        connection = (HttpURLConnection) requestUrl.openConnection();
++                        connection.setRequestMethod("GET");
++                        connection.setConnectTimeout(8000);
++                        connection.setReadTimeout(8000);
++                        if (connection.getResponseCode() == 200) {
++                            InputStream in = connection.getInputStream();
++                            reader = new BufferedReader(new InputStreamReader(in));
++                            String line;
++                            while ((line = reader.readLine()) != null) {
++                                sb.append(line);
++                            }
++                            System.out.println(sb);
++
++                        }
++                    } catch (Exception e) {
++                        e.printStackTrace();
++                    } finally {
++                        if (reader != null) {
++                            reader.close();
++                        }
++                        if (connection != null) {
++                            connection.disconnect();//
++                        }
++                    }
++                    return sb.toString();
++                }
++            });
++            new Thread(task).start();
++            String s = null;
++            try {
++                s = task.get();
++            } catch (Exception e) {
++                e.printStackTrace();
++            }
++            return s;
++        }
++
++        public String postRequset(final String url, final Map<String, String> map) {
++            final StringBuilder sb = new StringBuilder();
++            FutureTask<String> task = new FutureTask<String>(new Callable<String>() {
++                @Override
++                public String call() throws Exception {
++                    HttpURLConnection connection = null;
++                    BufferedReader reader = null;
++                    try {
++                        URL requestUrl = new URL(url);
++                        connection = (HttpURLConnection) requestUrl.openConnection();
++                        connection.setRequestMethod("POST");
++                        connection.setConnectTimeout(8000);//
++                        connection.setReadTimeout(8000);//
++                        //
++                        connection.setDoOutput(true);
++                        connection.setDoInput(true);
++                        connection.setUseCaches(false);
++                        connection.setInstanceFollowRedirects(true);
++                        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
++                        DataOutputStream out = new DataOutputStream(connection
++                                .getOutputStream());
++                        StringBuilder request = new StringBuilder();
++                        for (String key : map.keySet()) {
++                            request.append(key + "=" + URLEncoder.encode(map.get(key), "UTF-8") + "&");
++                        }
++                        out.writeBytes(request.toString());//
++                        out.flush();
++                        out.close();
++                        if (connection.getResponseCode() == 200) {
++                            InputStream in = connection.getInputStream();
++                            reader = new BufferedReader(new InputStreamReader(in));
++                            String line;
++                            while ((line = reader.readLine()) != null) {
++                                sb.append(line);
++                            }
++                            System.out.println(sb);
++
++                        }
++                    } catch (Exception e) {
++                        e.printStackTrace();
++                    } finally {
++                        if (reader != null) {
++                            reader.close();//关闭流
++                        }
++                        if (connection != null) {
++                            connection.disconnect();//
++                        }
++                    }
++                    return sb.toString();
++                }
++            });
++            new Thread(task).start();
++            String s = null;
++            try {
++                s = task.get();
++            } catch (Exception e) {
++                e.printStackTrace();
++            }
++            return s;
++        }
++
++    }
++}
+diff --git a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/widget/media/IjkVideoView.java b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/widget/media/IjkVideoView.java
+index cc3f002d..cc71acbe 100755
+--- a/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/widget/media/IjkVideoView.java
++++ b/android/ijkplayer/ijkplayer-example/src/main/java/tv/danmaku/ijk/media/example/widget/media/IjkVideoView.java
+@@ -1065,12 +1065,26 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
+                     } else {
+                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", pixelFormat);
+                     }
+-                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 30);
+                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
+ 
+                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "http-detect-range-support", 0);
+ 
+                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
++
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 60);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max-fps", 0);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "fps", 30);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_YV12);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "fflags", "nobuffer");
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "max-buffer-size", 256);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "min-frames", 2);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 1);
++                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probsize", "32");
++//                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "analyzeduration", "2000000");
++
+                 }
+                 mediaPlayer = ijkMediaPlayer;
+             }
+diff --git a/android/ijkplayer/ijkplayer-java/src/main/AndroidManifest.xml b/android/ijkplayer/ijkplayer-java/src/main/AndroidManifest.xml
+index c87fe470..e45a0473 100644
+--- a/android/ijkplayer/ijkplayer-java/src/main/AndroidManifest.xml
++++ b/android/ijkplayer/ijkplayer-java/src/main/AndroidManifest.xml
+@@ -1,7 +1,4 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="tv.danmaku.ijk.media.player" >
+ 
+-    <uses-sdk
+-        android:minSdkVersion="9" />
+-
+ </manifest>
+\ No newline at end of file
+diff --git a/android/ijkplayer/ijkplayer-java/src/main/java/tv/danmaku/ijk/media/player/IjkMediaPlayer.java b/android/ijkplayer/ijkplayer-java/src/main/java/tv/danmaku/ijk/media/player/IjkMediaPlayer.java
+index beb73f76..7217d751 100755
+--- a/android/ijkplayer/ijkplayer-java/src/main/java/tv/danmaku/ijk/media/player/IjkMediaPlayer.java
++++ b/android/ijkplayer/ijkplayer-java/src/main/java/tv/danmaku/ijk/media/player/IjkMediaPlayer.java
+@@ -432,6 +432,13 @@ public final class IjkMediaPlayer extends AbstractMediaPlayer {
+             }
+         }
+         setDataSource(path);
++//        setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0);
++//        setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "fflags", "nobuffer");
++//        setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "max-buffer-size", 1024);
++//        setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "min-frames", 5);
++//        setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 1);
++//        setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probsize", 10240L);
++//        setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "analyzeduration", 64L);
+     }
+ 
+     /**
+diff --git a/android/ijkplayer/ijkplayer-x86/src/main/AndroidManifest.xml b/android/ijkplayer/ijkplayer-x86/src/main/AndroidManifest.xml
+index 68a12d04..01dd7f87 100644
+--- a/android/ijkplayer/ijkplayer-x86/src/main/AndroidManifest.xml
++++ b/android/ijkplayer/ijkplayer-x86/src/main/AndroidManifest.xml
+@@ -1,7 +1,4 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="tv.danmaku.ijk.media.player_x86">
+ 
+-    <uses-sdk
+-        android:minSdkVersion="9" />
+-
+ </manifest>
+diff --git a/android/ijkplayer/ijkplayer-x86_64/src/main/AndroidManifest.xml b/android/ijkplayer/ijkplayer-x86_64/src/main/AndroidManifest.xml
+index 9ff26a79..d5691663 100644
+--- a/android/ijkplayer/ijkplayer-x86_64/src/main/AndroidManifest.xml
++++ b/android/ijkplayer/ijkplayer-x86_64/src/main/AndroidManifest.xml
+@@ -1,7 +1,4 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="tv.danmaku.ijk.media.player_x86_64">
+ 
+-    <uses-sdk
+-        android:minSdkVersion="21" />
+-
+ </manifest>
+diff --git a/config/module-default.sh b/config/module-default.sh
+index 9f02c4e4..88946eed 100755
+--- a/config/module-default.sh
++++ b/config/module-default.sh
+@@ -53,6 +53,8 @@ export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --enable-network"
+ # export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --disable-mdct"
+ # export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --disable-rdft"
+ # export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --disable-fft"
++export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --disable-linux-perf"
++export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --disable-bzlib"
+ 
+ # Hardware accelerators:
+ export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --disable-dxva2"
+@@ -169,4 +171,4 @@ export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --enable-protocol=async"
+ # export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --disable-random"
+ # export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --enable-random=LIST"
+ # export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --disable-random=LIST"
+-# export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --random-seed=VALUE"
+\ No newline at end of file
++# export COMMON_FF_CFG_FLAGS="$COMMON_FF_CFG_FLAGS --random-seed=VALUE"
+diff --git a/config/module.sh b/config/module.sh
+index 0f16f539..a25d6630 120000
+--- a/config/module.sh
++++ b/config/module.sh
+@@ -1 +1 @@
+-module-lite.sh
+\ No newline at end of file
++module-default.sh
+\ No newline at end of file
+diff --git a/ijkmedia/ijkplayer/ff_ffplay.c b/ijkmedia/ijkplayer/ff_ffplay.c
+index 52aba31f..b27222ee 100755
+--- a/ijkmedia/ijkplayer/ff_ffplay.c
++++ b/ijkmedia/ijkplayer/ff_ffplay.c
+@@ -36,6 +36,7 @@
+ #include <fcntl.h>
+ #include <sys/types.h>
+ #include <unistd.h>
++#include <time.h>
+ 
+ #include "libavutil/avstring.h"
+ #include "libavutil/eval.h"
+@@ -1285,15 +1286,16 @@ static double compute_target_delay(FFPlayer *ffp, double delay, VideoState *is)
+ }
+ 
+ static double vp_duration(VideoState *is, Frame *vp, Frame *nextvp) {
+-    if (vp->serial == nextvp->serial) {
+-        double duration = nextvp->pts - vp->pts;
+-        if (isnan(duration) || duration <= 0 || duration > is->max_frame_duration)
+-            return vp->duration;
+-        else
+-            return duration;
+-    } else {
+-        return 0.0;
+-    }
++    // if (vp->serial == nextvp->serial) {
++    //     double duration = nextvp->pts - vp->pts;
++    //     if (isnan(duration) || duration <= 0 || duration > is->max_frame_duration)
++    //         return vp->duration;
++    //     else
++    //         return duration;
++    // } else {
++    //     return 0.0;
++    // }
++    return vp->duration;
+ }
+ 
+ static void update_video_pts(VideoState *is, double pts, int64_t pos, int serial) {
+@@ -2181,11 +2183,13 @@ static int ffplay_video_thread(void *arg)
+     double duration;
+     int ret;
+     AVRational tb = is->video_st->time_base;
+-    AVRational frame_rate = av_guess_frame_rate(is->ic, is->video_st, NULL);
++    // AVRational frame_rate = av_guess_frame_rate(is->ic, is->video_st, NULL);
+     int64_t dst_pts = -1;
+     int64_t last_dst_pts = -1;
+     int retry_convert_image = 0;
+     int convert_frame_count = 0;
++    double *data;
++    int file_row = 0;
+ 
+ #if CONFIG_AVFILTER
+     AVFilterGraph *graph = avfilter_graph_alloc();
+@@ -2211,6 +2215,65 @@ static int ffplay_video_thread(void *arg)
+         return AVERROR(ENOMEM);
+     }
+ 
++    // {
++    //     const char *content = "hello, world!\n";
++
++    //     FILE *fp;
++
++    //     if ((fp = fopen("/mnt/sdcard/Download/video0.txt", "r+")) == NULL)
++    //     {
++    //         av_log(NULL, AV_LOG_INFO, "\nFFplay Open File ERROR\n");
++    //     }
++    //     else
++    //     {
++            
++    //         int flag = 0;
++    //         while (!feof(fp))
++    //         {
++    //             flag = fgetc(fp);
++    //             if (flag == '\n')
++    //                 file_row++;
++    //         }
++    //         rewind(fp);
++    //         av_log(NULL, AV_LOG_INFO, "\nFFplay %d\n", file_row);
++    //         char buffer[1024];
++    //         data = malloc(sizeof(double)*file_row*4);
++    //         // double data[file_row][4];
++    //         for (int i = 0; i < file_row; ++i)
++    //         {
++    //             if (fgets(buffer, sizeof(buffer), fp) != NULL)
++    //             {
++    //                 av_log(NULL, AV_LOG_INFO, "\n%s\n", buffer);
++    //                 sscanf(buffer, "%lf %lf %lf %lf", data+4*i, data+4*i+1, data+4*i+2, data+4*i+3);
++    //             }
++    //         }
++
++
++    //         av_log(NULL, AV_LOG_INFO, "\nFFplay Open File Finished! %lf %lf %lf %lf\n", *(data+4*10+0), *(data+4*10+1), *(data+4*10+2), *(data+4*10+3));
++    //     }
++        
++        
++
++        // fp = fopen("/mnt/sdcard/hello.txt", "a+");
++
++        // if (fp == NULL)
++        // {
++        //     fclose(fp);
++        //     av_log(NULL, AV_LOG_INFO, "\nFFplay Open File ERROR\n");
++        // }
++
++        // int length = strlen(content);
++        // for (int i = 0; i < length; i++)
++        // {
++        //     fputc(content[i], fp);
++        // }
++        // fclose(fp);
++        
++        
++        
++
++    // }
++
+     for (;;) {
+         ret = get_video_frame(ffp, frame);
+         if (ret < 0)
+@@ -2315,8 +2378,91 @@ static int ffplay_video_thread(void *arg)
+                 is->frame_last_filter_delay = 0;
+             tb = av_buffersink_get_time_base(filt_out);
+ #endif
+-            duration = (frame_rate.num && frame_rate.den ? av_q2d((AVRational){frame_rate.den, frame_rate.num}) : 0);
++            // duration = (frame_rate.num && frame_rate.den ? av_q2d((AVRational){frame_rate.den, frame_rate.num}) : 0);
++             duration=0.01;
+             pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : frame->pts * av_q2d(tb);
++
++            {
++                sei_message *message = frame->opaque;
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: t = %lf, x = %lf, y = %lf, z = %lf, l=%lld\n",
++                // message->time, message->rotations[0], message->rotations[1], message->rotations[2], message->latency);
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: pts = %d, pkt_pts=%d, t=%d\n", frame->best_effort_timestamp, frame->pkt_pts, pts);
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: pts = %d x = %lf, y = %lf, z = %lf\n", frame->pts, *pDouble, *(pDouble+1), *(pDouble+2));
++//              av_log(NULL, AV_LOG_INFO, apply_cropping"test: %d\n", *(int *)(frame->opaque));
++
++                // double rotation[4] = {0.0, 0.0, 0.0, 0.0};
++
++                // for (int i = 0; i < file_row; i++)
++                // {
++                //     if (*(data+4*i) > message->time)
++                //         break;
++                    
++                //     rotation[0] = message->time;
++                //     rotation[1] = *(data+4*i+1);
++                //     rotation[2] = *(data+4*i+2);
++                //     rotation[3] = *(data+4*i+3);
++                // }
++
++                // if (message->gt[0] > message->rotations[0])
++                // {
++                //     frame->crop_top = 100 - (size_t) ((message->gt[0] - message->rotations[0]) * 8);
++                //     frame->crop_bottom = 100 + (size_t) ((message->gt[0] - message->rotations[0]) * 8);
++                // }
++                // else
++                // {
++                //     frame->crop_top = 100 + (size_t) ((message->rotations[0] - message->gt[0]) * 8);
++                //     frame->crop_bottom = 100 - (size_t) ((message->rotations[0] - message->gt[0]) * 8);
++                // }
++
++                // if (message->gt[1] > message->rotations[1])
++                // {
++                //     frame->crop_left = 100 + (size_t) ((message->gt[1] - message->rotations[1]) * 7.11);
++                //     frame->crop_right = 100 - (size_t) ((message->gt[1] - message->rotations[1]) * 7.11);
++                // }
++                // else
++                // {
++                //     frame->crop_left = 100 - (size_t) ((message->rotations[1] - message->gt[1]) * 7.11);
++                //     frame->crop_right = 100 + (size_t) ((message->rotations[1] - message->gt[1]) * 7.11);
++                // }
++                
++                
++
++                // // size_t delta_h = (size_t) ((rotation[1] - message->rotations[0]) * 8); // 1440px / 180 deg
++                // // size_t delta_w = (size_t) ((rotation[2] - message->rotations[1]) * 7.11); // 2560 / 360 deg
++
++                // // frame->crop_top = 52;
++                // // frame->crop_bottom = 48;
++
++                // // frame->crop_left = 35;
++                // // frame->crop_right = 65;
++
++
++
++
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: crop = %ld %ld %ld %ld\n",
++                // frame->crop_top, frame->crop_bottom, frame->crop_left, frame->crop_right);
++
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: w x h = %ld %ld\n",
++                // frame->width, frame->height);
++
++                // av_frame_apply_cropping(frame, AV_FRAME_CROP_UNALIGNED);
++
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: w x h = %ld %ld\n",
++                // frame->width, frame->height);
++
++                struct timespec t_end = {0, 0};
++
++                clock_gettime(CLOCK_REALTIME, &t_end);
++
++                clock_t t = clock();
++
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: clock = %lld %ld\n", (long long)t_end.tv_sec, (long long)t_end.tv_nsec);
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: clock = %lld %lld\n", (long long) t_end.tv_sec * 1000, (long long) t_end.tv_nsec / 1000000);
++                // av_log(NULL, AV_LOG_INFO, "\nFFplay read out: start time = %lld\n", message->latency);
++                av_log(NULL, AV_LOG_INFO, "\nFFplay read out: latency = %lld\n", ((long long)t_end.tv_sec*1000+ (long long)t_end.tv_nsec/1000000) - message->latency);
++
++            }
++
+             ret = queue_picture(ffp, frame, pts, duration, frame->pkt_pos, is->viddec.pkt_serial);
+             av_frame_unref(frame);
+ #if CONFIG_AVFILTER
+diff --git a/ijkmedia/ijkplayer/ff_ffplay_def.h b/ijkmedia/ijkplayer/ff_ffplay_def.h
+index 00f19f3c..5e867c19 100755
+--- a/ijkmedia/ijkplayer/ff_ffplay_def.h
++++ b/ijkmedia/ijkplayer/ff_ffplay_def.h
+@@ -74,8 +74,8 @@
+  * MAX:   ...
+  */
+ #define DEFAULT_FIRST_HIGH_WATER_MARK_IN_MS     (100)
+-#define DEFAULT_NEXT_HIGH_WATER_MARK_IN_MS      (1 * 1000)
+-#define DEFAULT_LAST_HIGH_WATER_MARK_IN_MS      (5 * 1000)
++#define DEFAULT_NEXT_HIGH_WATER_MARK_IN_MS      (200)
++#define DEFAULT_LAST_HIGH_WATER_MARK_IN_MS      (200)
+ 
+ #define BUFFERING_CHECK_PER_BYTES               (512)
+ #define BUFFERING_CHECK_PER_MILLISECONDS        (500)
+@@ -85,7 +85,7 @@
+ #define MAX_QUEUE_SIZE (15 * 1024 * 1024)
+ #define MAX_ACCURATE_SEEK_TIMEOUT (5000)
+ #ifdef FFP_MERGE
+-#define MIN_FRAMES 25
++#define MIN_FRAMES 5
+ #endif
+ #define DEFAULT_MIN_FRAMES  50000
+ #define MIN_MIN_FRAMES      2

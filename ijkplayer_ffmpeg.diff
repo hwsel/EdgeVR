@@ -1,0 +1,90 @@
+diff --git a/libavcodec/h264_sei.c b/libavcodec/h264_sei.c
+index 332ae508606..92444286ade 100644
+--- a/libavcodec/h264_sei.c
++++ b/libavcodec/h264_sei.c
+@@ -260,6 +260,31 @@ static int decode_unregistered_user_data(H264SEIUnregistered *h, GetBitContext *
+     if (strlen(user_data + 16) > 0)
+         av_log(logctx, AV_LOG_DEBUG, "user data:\"%s\"\n", user_data + 16);
+ 
++    {
++        h->message = malloc(sizeof(sei_message));
++
++        uint8_t target_uuid[] = {0x08, 0x6f, 0x36, 0x93, 0xb7, 0xb3, 0x4f, 0x2c,
++                                 0x96, 0x53, 0x21, 0x49, 0x2f, 0xee, 0xe5, 0xb8};
++        if (memcmp(user_data, target_uuid, 16)==0)
++        {
++            int r = 0;
++            r = sscanf(user_data+16, "t = %lf, x = %lf, y = %lf, z = %lf, l = %lld, gtX = %lf, gtY = %lf, gtZ = %lf",
++             &(h->message->time), h->message->rotations, h->message->rotations+1, h->message->rotations+2, &(h->message->latency), h->message->gt, h->message->gt+1, h->message->gt+2);
++
++            av_log(NULL, AV_LOG_INFO, "\nFFplay raw %lld\n", h->message->latency);
++            av_log(NULL, AV_LOG_INFO, "\nFFplay raw %s\n", user_data+16);
++           av_log(NULL, AV_LOG_INFO, "\nFFplay %x%x%x%x-%x%x-%x%x-%x%x-%x%x%x%x%x%x\tt = %lf, x = %lf, y = %lf, z = %lf\n",
++                  user_data[0], user_data[1], user_data[2], user_data[3],
++                  user_data[4], user_data[5],
++                  user_data[6], user_data[7],
++                  user_data[8], user_data[9],
++                  user_data[10], user_data[11], user_data[12], user_data[13], user_data[14], user_data[15],
++                  h->message->time, h->message->rotations[0], h->message->rotations[1], h->message->rotations[2]);
++
++        }
++
++    }
++
+     av_free(user_data);
+     return 0;
+ }
+diff --git a/libavcodec/h264_sei.h b/libavcodec/h264_sei.h
+index a53f1899fad..877809b0d8a 100644
+--- a/libavcodec/h264_sei.h
++++ b/libavcodec/h264_sei.h
+@@ -99,6 +99,8 @@ typedef struct H264SEIA53Caption {
+ 
+ typedef struct H264SEIUnregistered {
+     int x264_build;
++    double *rotations;
++    sei_message *message;
+ } H264SEIUnregistered;
+ 
+ typedef struct H264SEIRecoveryPoint {
+diff --git a/libavcodec/h264dec.c b/libavcodec/h264dec.c
+index f29c3f90488..2ea7a5c9754 100644
+--- a/libavcodec/h264dec.c
++++ b/libavcodec/h264dec.c
+@@ -1033,6 +1033,17 @@ static int h264_decode_frame(AVCodecContext *avctx, void *data,
+         }
+     }
+ 
++    {
++//        av_log(NULL, AV_LOG_INFO, "%d\n", h->sei.unregistered.x264_build);
++        // double *ip;
++        // ip = h->sei.unregistered.rotations;
++        pict->opaque = h->sei.unregistered.message;
++
++//        free(h->sei.unregistered.rotations);
++        h->sei.unregistered.message = NULL;
++
++    }
++
+     av_assert0(pict->buf[0] || !*got_frame);
+ 
+     ff_h264_unref_picture(h, &h->last_pic_for_ec);
+diff --git a/libavutil/frame.h b/libavutil/frame.h
+index abe4f4fd178..fb894eead4c 100644
+--- a/libavutil/frame.h
++++ b/libavutil/frame.h
+@@ -37,6 +37,14 @@
+ #include "version.h"
+ 
+ 
++typedef struct sei_message
++{
++    double time;
++    double rotations[3];
++    long long latency;
++    double gt[3];
++} sei_message;
++
+ /**
+  * @defgroup lavu_frame AVFrame
+  * @ingroup lavu_data
