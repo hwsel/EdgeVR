@@ -1,0 +1,479 @@
+diff --git a/.gitignore b/.gitignore
+index 0e57cb0b4c..25e9c30df7 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -36,3 +36,5 @@
+ /lcov/
+ /src
+ /mapfile
++venv
++
+diff --git a/ffmpeg_o b/ffmpeg_o
+new file mode 100755
+index 0000000000..32110c154e
+Binary files /dev/null and b/ffmpeg_o differ
+diff --git a/fftools/ffmpeg.c b/fftools/ffmpeg.c
+index 4724f62fff..66ae8d3b37 100644
+--- a/fftools/ffmpeg.c
++++ b/fftools/ffmpeg.c
+@@ -1305,6 +1305,58 @@ static void do_video_out(OutputFile *of,
+                     av_ts2str(pkt.dts), av_ts2timestr(pkt.dts, &ost->mux_timebase));
+             }
+ 
++            //////////////////////////////////////////////
++            //
++            //////////////////////////////////////////////
++
++            {
++                const AVBitStreamFilter *avBitStreamFilter;
++                AVBSFContext *avbsfContext;
++                int ret = 0;
++
++                char s[1024];
++                sei_message *message = in_picture->opaque;
++
++                // --------------------------
++
++                
++
++                snprintf(s, 1024, "086f3693b7b34f2c965321492feee5b8+t = %lf, x = %lf, y = %lf, z = %lf, l = %lld, gtX = %lf, gtY = %lf, gtZ = %lf",
++                        message->time, message->rotations[0], message->rotations[1], message->rotations[2], message->latency, message->gt[0], message->gt[1], message->gt[2]);
++
++                // av_log(NULL, AV_LOG_INFO, "\n%s\n", s);
++                // ----------------------------
++
++                avBitStreamFilter = av_bsf_get_by_name("h264_metadata");
++                if (!avBitStreamFilter)
++                {
++                    printf("h264_metadata bitstream filter error\n");
++                    return;
++                }
++                ret = av_bsf_alloc(avBitStreamFilter, &avbsfContext);
++                av_opt_set(avbsfContext->priv_data, "sei_user_data", s, AV_OPT_SEARCH_CHILDREN);
++                ret = avcodec_parameters_copy(avbsfContext->par_in, ost->st->codecpar);
++                ret = av_bsf_init(avbsfContext);
++                ret = avcodec_parameters_copy(ost->st->codecpar, avbsfContext->par_out);
++                ret = av_bsf_send_packet(avbsfContext, &pkt);
++                while (!ret)
++                {
++                    ret = av_bsf_receive_packet(avbsfContext, &pkt);
++                }
++                // -------------------------
++                free(in_picture->opaque);
++                in_picture->opaque = NULL;
++                av_bsf_free(&avbsfContext);
++
++
++            }
++
++            //////////////////////////////////////////////
++            //
++            //////////////////////////////////////////////
++
+             frame_size = pkt.size;
+             output_packet(of, &pkt, ost, 0);
+ 
+diff --git a/fftools/ffplay.c b/fftools/ffplay.c
+index f2028d4b13..80f5daa8bb 100644
+--- a/fftools/ffplay.c
++++ b/fftools/ffplay.c
+@@ -2136,6 +2136,19 @@ static int video_thread(void *arg)
+         if (!ret)
+             continue;
+ 
++        {
++            sei_message *message = frame->opaque;
++
++            double rotation[4] = {0.0, 0.0, 0.0, 0.0};
++
++            rotation[1] = message->rotations[0] - 1.1;
++            rotation[2] = message->rotations[1] - 2.2;
++            rotation[3] = message->rotations[2];
++
++            
++            av_frame_apply_cropping(frame, 0);
++        }
++
+ #if CONFIG_AVFILTER
+         if (   last_w != frame->width
+             || last_h != frame->height
+diff --git a/libavcodec/.gitignore b/libavcodec/.gitignore
+index 28814f7233..e12b34968c 100644
+--- a/libavcodec/.gitignore
++++ b/libavcodec/.gitignore
+@@ -4,3 +4,5 @@
+ /bsf_list.c
+ /codec_list.c
+ /parser_list.c
++
++0videos
+diff --git a/libavcodec/h264_sei.c b/libavcodec/h264_sei.c
+index 9defcb80b9..7d311dff62 100644
+--- a/libavcodec/h264_sei.c
++++ b/libavcodec/h264_sei.c
+@@ -257,6 +257,36 @@ static int decode_unregistered_user_data(H264SEIUnregistered *h, GetBitContext *
+     if (e == 1 && build == 1 && !strncmp(user_data+16, "x264 - core 0000", 16))
+         h->x264_build = 67;
+ 
++    //////////////////////////////////////////////
++    //
++    //////////////////////////////////////////////
++
++    {
++        h->message = malloc(sizeof(sei_message));
++
++        uint8_t target_uuid[] = {0x08, 0x6f, 0x36, 0x93, 0xb7, 0xb3, 0x4f, 0x2c,
++                                 0x96, 0x53, 0x21, 0x49, 0x2f, 0xee, 0xe5, 0xb8};
++        if (memcmp(user_data, target_uuid, 16)==0)
++        {
++            int r = 0;
++            r = sscanf(user_data+16, "t = %lf, x = %lf, y = %lf, z = %lf", &(h->message->time), h->message->rotations, h->message->rotations+1, h->message->rotations+2);
++
++
++        //    av_log(NULL, AV_LOG_INFO, "\nFFplay %x%x%x%x-%x%x-%x%x-%x%x-%x%x%x%x%x%x\tt = %lf, x = %lf, y = %lf, z = %lf\n",
++        //           user_data[0], user_data[1], user_data[2], user_data[3],
++        //           user_data[4], user_data[5],
++        //           user_data[6], user_data[7],
++        //           user_data[8], user_data[9],
++        //           user_data[10], user_data[11], user_data[12], user_data[13], user_data[14], user_data[15],
++        //           h->message->time, h->message->rotations[0], h->message->rotations[1], h->message->rotations[2]);
++
++        }
++
++    }
++    //////////////////////////////////////////////
++    //
++    //////////////////////////////////////////////
++
+     av_free(user_data);
+     return 0;
+ }
+diff --git a/libavcodec/h264_sei.h b/libavcodec/h264_sei.h
+index 9488382b9f..822ce1be67 100644
+--- a/libavcodec/h264_sei.h
++++ b/libavcodec/h264_sei.h
+@@ -99,6 +99,8 @@ typedef struct H264SEIA53Caption {
+ 
+ typedef struct H264SEIUnregistered {
+     int x264_build;
++    double *rotations;
++    sei_message *message;
+ } H264SEIUnregistered;
+ 
+ typedef struct H264SEIRecoveryPoint {
+diff --git a/libavcodec/h264dec.c b/libavcodec/h264dec.c
+index 7494c7a8f2..5464ba616c 100644
+--- a/libavcodec/h264dec.c
++++ b/libavcodec/h264dec.c
+@@ -1020,6 +1020,25 @@ static int h264_decode_frame(AVCodecContext *avctx, void *data,
+         }
+     }
+ 
++    //////////////////////////////////////////////
++    //
++    //////////////////////////////////////////////
++
++    {
++//        av_log(NULL, AV_LOG_INFO, "%d\n", h->sei.unregistered.x264_build);
++        // double *ip;
++        // ip = h->sei.unregistered.rotations;
++        pict->opaque = h->sei.unregistered.message;
++
++//        free(h->sei.unregistered.rotations);
++        h->sei.unregistered.rotations = NULL;
++
++    }
++
++    //////////////////////////////////////////////
++    //
++    //////////////////////////////////////////////
++
+     av_assert0(pict->buf[0] || !*got_frame);
+ 
+     ff_h264_unref_picture(h, &h->last_pic_for_ec);
+diff --git a/libavfilter/vf_project.c b/libavfilter/vf_project.c
+index 1bb24e076e..3859e827d4 100644
+--- a/libavfilter/vf_project.c
++++ b/libavfilter/vf_project.c
+@@ -24,6 +24,11 @@
+  */
+ 
+ #include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <sys/mman.h>
++#include <math.h>
+ 
+ #include "avfilter.h"
+ #include "formats.h"
+@@ -163,6 +168,21 @@ typedef struct _tile {
+     double h;
+ }tile_t;
+ 
++typedef struct sharedmemory
++{
++    float x;
++    float y;
++    float z;
++    int pad;
++    long long l;
++    float old_x;
++    float old_y;
++    float old_z;
++    int old_pad;
++    long long old_l;
++} sharedmemory;
++
++
+ typedef struct ProjectContext {
+     const AVClass *class;
+     int  x;             ///< x offset of the non-projected area with respect to the input area
+@@ -225,6 +245,10 @@ typedef struct ProjectContext {
+     // store the original data from frames as texture
+     uint8_t *ori_buffer[3];
+ 
++    float *pOri;
++    long long *pTime;
++    sharedmemory *shared_memeory;
++
+ } ProjectContext;
+ 
+ static av_cold void uninit(AVFilterContext *ctx);
+@@ -373,6 +397,24 @@ static av_cold int init(AVFilterContext *ctx)
+     s->ors = init_vector();
+     s->layout = init_vector();
+ 
++    int fd = open("../shared_memory/predicted.txt", O_RDONLY, 0644);
++
++    if (fd < 0) {
++        perror("open");
++        exit(2);
++    }
++
++    // s->pOri = (float *) mmap(NULL, 20, PROT_READ, MAP_SHARED, fd, 0);
++    // s->pTime = (long long *) s->pOri+4;
++    s->shared_memeory = (sharedmemory *) mmap(NULL, sizeof(sharedmemory), PROT_READ, MAP_SHARED, fd, 0);
++
++    if (s->shared_memeory == MAP_FAILED) {
++        perror("mmap");
++        exit(3);
++    }
++
++    close(fd);
++
+     av_log(ctx, AV_LOG_INFO, "[Project Filter] Initialize OpenGL context\n");
+     if(gl_init(ctx))
+         return AVERROR(ENOSYS);
+@@ -408,6 +450,14 @@ static av_cold void uninit(AVFilterContext *ctx)
+     for(i = 0; i < 3; i++)
+         if(s->ori_buffer[i] != NULL)
+             free(s->ori_buffer[i]);
++
++    int ret = munmap(s->shared_memeory, sizeof(sharedmemory));
++    free(s->shared_memeory);
++    free(s->pTime);
++    if (ret < 0) {
++        perror("mmumap");
++        exit(4);
++    }
+ }
+ 
+ static inline int normalize_double(int *n, double d)
+@@ -749,6 +799,10 @@ static int filter_frame(AVFilterLink *link, AVFrame *frame)
+     const GLfloat res[2] = { s->w, s->h };
+     const GLfloat res2[2] = { s->w >> s->hsub, s->h >> s->vsub };
+ 
++    double startX, startY, startZ;
++    double endX, endY, endZ;
++    double gtX, gtY, gtZ;
++
+ 
+     fr_idx++;
+     if(fr_idx == 1)
+@@ -762,6 +816,18 @@ static int filter_frame(AVFilterLink *link, AVFrame *frame)
+     rotations[1] = s->yr;
+     rotations[2] = s->zr;
+ 
++    ////////////////////////////////////////////
++    // shared memroy goes here
++    ///////////////////////////////////////////
++
++    // rotations[0] = s->shared_memeory->x - s->shared_memeory->old_x / 30 * 15;
++    // rotations[1] = s->shared_memeory->y;
++    // rotations[2] = s->shared_memeory->z;
++
++    ////////////////////////
++    //
++    ///////////////////////
++
+     if(s->ors->nr > 0){
+         for(i = 0; i < s->ors->nr; i++){
+             memcpy(line, s->ors->head[i].str, 128);
+@@ -771,15 +837,76 @@ static int filter_frame(AVFilterLink *link, AVFrame *frame)
+                 return AVERROR(ENOSYS);
+             }
+ 
++            // rotations[0] = args[1];
++            // rotations[1] = args[2];
++            // rotations[2] = args[3];
++
+             if(args[0] > fr_t + s->tb)
+                 break;
+ 
+-            rotations[0] = args[2];
+-            rotations[1] = args[3];
+-            rotations[2] = 0.0f;
++            // rotations[0] = args[1];
++            // rotations[1] = args[2];
++            // rotations[2] = args[3];
++
++            // av_log(ctx, AV_LOG_ERROR, "%f, %f, %f, %f\n", args[0], args[1], args[2], args[3]);
++
++            gtX = args[1];
++            gtY = args[2];
++            gtZ = args[3];
+         }
++        
++        // ----Prediection----
++        {
++            const int K = 15;
++            const int T = 15;
++
++            const int idx_start = i - T - K + 1;
++            const int idx_end = i - T;
++
++
++            if (idx_start < 0)
++            {
++                rotations[0] = 0;
++                rotations[1] = 0;
++                rotations[2] = 0;
++            }
++            else
++            {
++                memcpy(line, s->ors->head[idx_start].str, 128);
++                parsed = parseArgsf(line, args, " ");
++                if(parsed != 4){
++                    av_log(ctx, AV_LOG_ERROR, "[Project Filter] Error on parsing file %s line %d: %s\n", s->orfile, i+1, s->ors->head[i].str);
++                    return AVERROR(ENOSYS);
++                }
++
++                startX = args[1];
++                startY = args[2];
++                startZ = args[3];
++
++                memcpy(line, s->ors->head[idx_end].str, 128);
++                parsed = parseArgsf(line, args, " ");
++                if(parsed != 4){
++                    av_log(ctx, AV_LOG_ERROR, "[Project Filter] Error on parsing file %s line %d: %s\n", s->orfile, i+1, s->ors->head[i].str);
++                    return AVERROR(ENOSYS);
++                }
++
++                endX = args[1];
++                endY = args[2];
++                endZ = args[3];
++
++                rotations[0] = endX + (endX - startX);
++                rotations[1] = endY + (endY - startY);
++                rotations[2] = endZ + (endZ - startZ);
++
++            }
++
++        }
++        
+     }
+ 
++    if(fr_idx == 1)
++        av_log(ctx, AV_LOG_INFO, "[Project Filter] filter_frame(): time = %f, x = %lf, y = %lf, z = %lf\n", fr_t + s->tb, rotations[0], rotations[1], rotations[2]);
++
+     in_w = frame->width;
+     in_h = frame->height;
+ 
+@@ -955,6 +1082,66 @@ static int filter_frame(AVFilterLink *link, AVFrame *frame)
+     if(frame->data[3])
+         memset(frame->data[3], 255, frame->height * frame->linesize[3]);
+ 
++
++    {
++        sei_message *message = malloc(sizeof(sei_message));
++
++        message->rotations[0] = rotations[0];
++        message->rotations[1] = rotations[1];
++        message->rotations[2] = rotations[2];
++        
++        message->time = fr_t + s->tb;
++
++        // message->latency = s->shared_memeory->l;
++
++        message->latency = 0L;
++
++        message->gt[0] = gtX;
++        message->gt[1] = gtY;
++        message->gt[2] = gtZ;
++
++        // av_log(ctx, AV_LOG_ERROR, "[Project Filter] latency = %lld %ld\n", s->shared_memeory->l, sizeof(int));
++
++        frame->opaque = message;
++    }
++
++    // if (gtX > rotations[0])
++    // {
++    //     size_t deltaX = (gtX - rotations[0]) > 14 ? (size_t) 100 : (size_t) (400.0 * tan((gtX - rotations[0]) * PI / 180.0));
++    //     frame->crop_top = 266 - deltaX;
++    //     frame->crop_bottom = 266 + deltaX;
++
++    // }
++    // else
++    // {
++    //     size_t deltaX = (rotations[0] - gtX) > 14 ? (size_t) 100 : (size_t) (400.0 * tan((rotations[0] - gtX) * PI / 180.0));
++    //     frame->crop_top = 266 + deltaX;
++    //     frame->crop_bottom = 266 - deltaX;
++    // }
++
++    // if (gtY > rotations[1])
++    // {
++    //     size_t deltaY = (gtY - rotations[1]) > 14 ? (size_t) 100 : (size_t) (400.0 * tan((gtY - rotations[1]) * PI / 180.0));
++    //     frame->crop_left = 266 + deltaY;
++    //     frame->crop_right = 266 - deltaY;
++    // }
++    // else
++    // {
++    //     size_t deltaY = (rotations[1] - gtY) > 14 ? (size_t) 100 : (size_t) (400.0 * tan((rotations[1] - gtY) * PI / 180.0));
++    //     frame->crop_left = 266 - deltaY;
++    //     frame->crop_right = 266 + deltaY;
++    // }
++
++    // frame->crop_top = (size_t) 120;
++    // frame->crop_bottom = (size_t) 120;
++    // frame->crop_left = (size_t) 120;
++    // frame->crop_right = (size_t) 120;
++
++    // // av_log(ctx, AV_LOG_INFO, "[Project Filter] %d, %d, %d, %d\n", frame->crop_top, frame->crop_bottom, frame->crop_left, frame->crop_right);
++    // // av_log(ctx, AV_LOG_INFO, "[Project Filter] %lf, %lf\n", gtX, gtY);
++
++    // av_frame_apply_cropping(frame, AV_FRAME_CROP_UNALIGNED);
++
+     return ff_filter_frame(link->dst->outputs[0], frame);
+ }
+ 
+diff --git a/libavutil/frame.h b/libavutil/frame.h
+index 9d57d6ce66..9337ecae38 100644
+--- a/libavutil/frame.h
++++ b/libavutil/frame.h
+@@ -37,6 +37,15 @@
+ #include "version.h"
+ 
+ 
++typedef struct sei_message
++{
++    double time;
++    double rotations[3];
++    long long latency;
++    double gt[3];
++} sei_message;
++
++
+ /**
+  * @defgroup lavu_frame AVFrame
+  * @ingroup lavu_data
