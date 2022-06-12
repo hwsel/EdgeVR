@@ -5,6 +5,11 @@ WIP.
 ## Dataset
 
 Please download from (https://wuchlei-thu.github.io/)
+
+## RTMP Server
+
+`docker run --name nginx-rtmp -p 1935:1935 -p 8080:8080 -d jasonrivers/nginx-rtmp`
+
 ## FFmpeg360
 
 1. Clone git repo from FFmpeg360 `git clone https://github.com/bingsyslab/ffmpeg360.git`
