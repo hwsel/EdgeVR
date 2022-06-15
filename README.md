@@ -27,3 +27,7 @@ Please download from (https://wuchlei-thu.github.io/)
 6. Open ffmpeg folder `cd android/contrib/ffmpeg-armv7a`
 7. Apply diff file `git apply ../../../../ijkplayer_ffmpeg.diff`
 8. Follow instructions in ijkplayer
+
+## Cite Our Work
+
+Zichen Zhu, Xianglong Feng, Zhongze Tang, Nan Jiang, Tian Guo, Lisong Xu, and Sheng Wei, “Power-Efficient Live Virtual Reality Streaming Using Edge,” presented at the 32nd edition of the Workshop on Network and Operating System Support for Digital Audio and Video (NOSSDAV ’22), Jun. 2022. doi: 10.1145/3534088.3534351.
