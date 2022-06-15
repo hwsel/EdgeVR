@@ -1,6 +1,8 @@
 # EdgeVR
 
-WIP.
+In this project, we developed an edge offloading-based approach to minimize the on-device computation and the power consumption in the live VR streaming system. Please read and refer to our recently accepted NOSSDAV '22 paper for more details about this project: 
+
+> Zichen Zhu, Xianglong Feng, Zhongze Tang, Nan Jiang, Tian Guo, Lisong Xu, and Sheng Wei, “Power-Efficient Live Virtual Reality Streaming Using Edge,” Workshop on Network and Operating System Support for Digital Audio and Video (NOSSDAV), Jun. 2022.
 
 ## System Setup
 
@@ -35,4 +37,4 @@ Please download from https://wuchlei-thu.github.io/
 
 ## Cite Our Work
 
-Zichen Zhu, Xianglong Feng, Zhongze Tang, Nan Jiang, Tian Guo, Lisong Xu, and Sheng Wei, “Power-Efficient Live Virtual Reality Streaming Using Edge,” presented at the 32nd edition of the Workshop on Network and Operating System Support for Digital Audio and Video (NOSSDAV ’22), Jun. 2022. doi: 10.1145/3534088.3534351.
+Zichen Zhu, Xianglong Feng, Zhongze Tang, Nan Jiang, Tian Guo, Lisong Xu, and Sheng Wei, “Power-Efficient Live Virtual Reality Streaming Using Edge,” Workshop on Network and Operating System Support for Digital Audio and Video (NOSSDAV), Jun. 2022.
