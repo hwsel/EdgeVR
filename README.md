@@ -4,7 +4,7 @@ In this project, we developed an edge offloading-based approach to minimize the 
 
 > Zichen Zhu, Xianglong Feng, Zhongze Tang, Nan Jiang, Tian Guo, Lisong Xu, and Sheng Wei, “Power-Efficient Live Virtual Reality Streaming Using Edge,” Workshop on Network and Operating System Support for Digital Audio and Video (NOSSDAV), Jun. 2022.
 
-And a draft version of our paper is placed under the paper folder.
+And our paper is placed under the paper folder.
 
 ## System Setup
 
@@ -35,7 +35,7 @@ And a draft version of our paper is placed under the paper folder.
 
 ### Dataset
 
-Please download from https://wuchlei-thu.github.io/
+Please download from https://wuchlei-thu.github.io/.
 
 ## Cite Our Work
 
