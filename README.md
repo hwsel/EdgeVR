@@ -2,22 +2,23 @@
 
 WIP.
 
-## Dataset
+## System Setup
 
-Please download from (https://wuchlei-thu.github.io/)
+### Edge Server
 
-## RTMP Server
+#### Renderer and Viewport Predictor
 
-`docker run --name nginx-rtmp -p 1935:1935 -p 8080:8080 -d jasonrivers/nginx-rtmp`
-
-## FFmpeg360
-
-1. Clone git repo from FFmpeg360 `git clone https://github.com/bingsyslab/ffmpeg360.git`
+1. Clone the repo from FFmpeg360 `git clone https://github.com/bingsyslab/ffmpeg360.git`
 2. Open the folder `cd ffmpeg360`
 3. Check out the commit `git checkout 70d1a945213a298c588486270cac46196bd338d3`
-4. Apply diff file `git apply ../ffmpeg360.diff`
+4. Apply changes from our work `git apply ../renderer_and_viewport_predictor.diff`
 
-## ijkplayer
+#### RTMP Server
+
+1. Install Dokcer with instructions from Docker: https://docs.docker.com/engine/install/
+2. Run the RTMP server `docker run --name nginx-rtmp -p 1935:1935 -p 8080:8080 -d jasonrivers/nginx-rtmp`
+
+### Client - Video Player
 
 1. Clone git repo from ijkplayer `git clone https://github.com/bilibili/ijkplayer.git`
 2. Open the folder `cd ijkplayer`
@@ -27,6 +28,10 @@ Please download from (https://wuchlei-thu.github.io/)
 6. Open ffmpeg folder `cd android/contrib/ffmpeg-armv7a`
 7. Apply diff file `git apply ../../../../ijkplayer_ffmpeg.diff`
 8. Follow instructions in ijkplayer
+
+### Dataset
+
+Please download from https://wuchlei-thu.github.io/
 
 ## Cite Our Work
 
